@@ -11,13 +11,17 @@ export class UserResponseDto {
   @ApiProperty()
   email: string;
 
-  @ApiProperty()
-  role: string;
+  @ApiProperty({ required: false })
+  createdAt?: Date;
+
+  @ApiProperty({ required: false })
+  updatedAt?: Date;
 
   constructor(user: User) {
-    this.id = (user as any)._id?.toString();
+    this.id = user.id;
     this.name = user.name;
     this.email = user.email;
-    this.role = user.role;
+    this.createdAt = user.createdAt;
+    this.updatedAt = user.updatedAt;
   }
 }

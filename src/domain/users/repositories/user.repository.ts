@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { User, UserDocument } from '../entities/user.entity';
+import { User } from '../entities/user.entity'; 
+import { UserDocument } from '../../../users/user.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateUserDto } from '../dtos/create-user.dto';

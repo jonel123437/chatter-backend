@@ -1,23 +1,34 @@
-import { Injectable } from '@nestjs/common';
+// src/domain/auth/services/auth.service.ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../../users/services/user.service';
 import { LoginDto } from '../dtos/login.dto';
-import { UserDocument } from '../../users/entities/user.entity';
-import { UnauthorizedException } from '@nestjs/common';
+import { UserMapper } from '../../users/mappers/user.mapper';
+import bcrypt from 'node_modules/bcryptjs';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtService: JwtService
+  ) {}
 
-  async login(dto: LoginDto): Promise<Omit<UserDocument, 'password'> | null> {
-    const user = await this.usersService.findOneByEmail(dto.email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+  async login(dto: LoginDto) {
+    const userDoc = await this.usersService.findOneByEmail(dto.email);
+    if (!userDoc) throw new UnauthorizedException('Invalid credentials');
 
-    const isValid = await user.validatePassword(dto.password);
-    if (!isValid) return null;
+    const isValid = await bcrypt.compare(dto.password, userDoc.password);
+    if (!isValid) throw new UnauthorizedException('Invalid credentials');
 
-    const { password, ...result } = user as any;
-    return result;
+    const domainUser = UserMapper.toDomain(userDoc)!;
+
+    const payload = { sub: domainUser.id, email: domainUser.email };
+    const token = this.jwtService.sign(payload);
+
+    return {
+      access_token: token,
+      user: domainUser,
+    };
   }
+
 }

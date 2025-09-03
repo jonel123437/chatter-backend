@@ -1,8 +1,15 @@
-// src/domain/users/entities/user.entity.ts
+// users/user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 
-@Schema({ timestamps: true })
+export type UserDocument = User & Document & { 
+  validatePassword(password: string): Promise<boolean>;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+@Schema({ timestamps: true }) // <-- add timestamps
 export class User {
   @Prop({ required: true })
   name: string;
@@ -12,10 +19,11 @@ export class User {
 
   @Prop({ required: true })
   password: string;
-
-  @Prop({ default: 'user' })
-  role: string;
 }
 
-export type UserDocument = User & Document;
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// Instance method
+UserSchema.methods.validatePassword = async function (password: string): Promise<boolean> {
+  return bcrypt.compare(password, this.password);
+};
