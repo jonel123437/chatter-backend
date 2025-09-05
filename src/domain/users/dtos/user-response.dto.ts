@@ -12,6 +12,12 @@ export class UserResponseDto {
   email: string;
 
   @ApiProperty({ required: false })
+  profilePicture?: string;
+
+  @ApiProperty({ required: false })
+  coverPicture?: string;
+
+  @ApiProperty({ required: false })
   createdAt?: Date;
 
   @ApiProperty({ required: false })
@@ -21,6 +27,8 @@ export class UserResponseDto {
     this.id = user.id;
     this.name = user.name;
     this.email = user.email;
+    this.profilePicture = user.profilePicture;
+    this.coverPicture = user.coverPicture;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
   }

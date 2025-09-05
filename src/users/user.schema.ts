@@ -1,7 +1,7 @@
-// users/user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import { DEFAULT_PROFILE_PICTURE, DEFAULT_COVER_PICTURE } from '../domain/shared/constants/defaults';
 
 export type UserDocument = User & Document & { 
   validatePassword(password: string): Promise<boolean>;
@@ -9,7 +9,7 @@ export type UserDocument = User & Document & {
   updatedAt?: Date;
 };
 
-@Schema({ timestamps: true }) // <-- add timestamps
+@Schema({ timestamps: true })
 export class User {
   @Prop({ required: true })
   name: string;
@@ -19,6 +19,12 @@ export class User {
 
   @Prop({ required: true })
   password: string;
+
+  @Prop({ default: DEFAULT_PROFILE_PICTURE })
+  profilePicture: string;
+
+  @Prop({ default: DEFAULT_COVER_PICTURE })
+  coverPicture: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

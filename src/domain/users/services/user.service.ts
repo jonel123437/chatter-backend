@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { User } from '../entities/user.entity';
 import { UserDocument } from '../../../users/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UserMapper } from '../mappers/user.mapper';
 import * as bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/user.repository';
+import { UpdateUserImagesDto } from '../dtos/update-user-images.dto';
 
 @Injectable()
 export class UsersService {
@@ -14,10 +13,13 @@ export class UsersService {
 
   async createUser(dto: CreateUserDto): Promise<User> {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    // Mongoose will automatically apply default profile and cover pictures
     const createdUser = await this.userRepo.create({
       ...dto,
       password: hashedPassword,
-    } as any); // cast dto to match UserDocument
+    } as any);
+
     return UserMapper.toDomain(createdUser)!;
   }
 
@@ -31,14 +33,21 @@ export class UsersService {
   }
 
   async searchUsers(query: string): Promise<User[]> {
-    console.log('Searching users for query:', query);
     const userDocs = await this.userRepo.searchUsers(query);
-    console.log('Found documents:', userDocs);
-    return userDocs.map(doc => {
-      const user = UserMapper.toDomain(doc);
-      console.log('Mapped user:', user);
-      return user!;
-    });
+    return userDocs.map(doc => UserMapper.toDomain(doc)!);
+  }
+
+  async updateImages(userId: string, dto: UpdateUserImagesDto): Promise<User> {
+    const userDoc = await this.userRepo.findById(userId);
+    if (!userDoc) {
+      throw new Error('User not found');
+    }
+
+    if (dto.profilePicture) userDoc.profilePicture = dto.profilePicture;
+    if (dto.coverPicture) userDoc.coverPicture = dto.coverPicture;
+
+    const updatedUser = await userDoc.save();
+    return UserMapper.toDomain(updatedUser)!;
   }
 
 }
