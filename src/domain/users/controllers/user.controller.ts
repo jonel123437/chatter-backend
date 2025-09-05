@@ -1,7 +1,7 @@
-import { Body, Controller, Post, Get, Param, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Req, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from '../services/user.service';
 import { CreateUserDto } from '../dtos/create-user.dto';
-import { ApiOperation, ApiResponse, ApiTags, ApiBody, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiBody, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { UserResponseDto } from '../dtos/user-response.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
@@ -19,23 +19,30 @@ export class UsersController {
     return new UserResponseDto(user);
   }
 
-  // --- Static route first: /users/me ---
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'Get current logged-in user' })
   @ApiResponse({ status: 200, description: 'Current user', type: UserResponseDto })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getCurrentUser(@Req() req: any): Promise<UserResponseDto> {
     const user = await this.usersService.findById(req.user.id);
     return new UserResponseDto(user!);
   }
 
-  // --- Dynamic route last: /users/:id ---
+  // --- SEARCH USERS MUST BE BEFORE :id ---
+  @Get('search')
+  @ApiOperation({ summary: 'Search users by name or email' })
+  @ApiQuery({ name: 'q', required: true, description: 'Search query (name or email)' })
+  @ApiResponse({ status: 200, description: 'List of users', type: [UserResponseDto] })
+  async searchUsers(@Query('q') query: string): Promise<UserResponseDto[]> {
+    const users = await this.usersService.searchUsers(query);
+    return users.map(user => new UserResponseDto(user));
+  }
+
+  // --- DYNAMIC :id ROUTE LAST ---
   @Get(':id')
   @ApiOperation({ summary: 'Get user by ID' })
   @ApiResponse({ status: 200, description: 'User found', type: UserResponseDto })
-  @ApiResponse({ status: 404, description: 'User not found' })
   async getUser(@Param('id') id: string): Promise<UserResponseDto | null> {
     const user = await this.usersService.findById(id);
     return user ? new UserResponseDto(user) : null;

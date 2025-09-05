@@ -6,31 +6,39 @@ import { UserDocument } from '../../../users/user.schema';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UserMapper } from '../mappers/user.mapper';
 import * as bcrypt from 'bcrypt';
+import { UserRepository } from '../repositories/user.repository';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel('User') private userModel: Model<UserDocument>) {}
+  constructor(private readonly userRepo: UserRepository) {}
 
   async createUser(dto: CreateUserDto): Promise<User> {
-    // hash the password
     const hashedPassword = await bcrypt.hash(dto.password, 10);
-
-    // create new user without role, with hashed password
-    const createdUser = new this.userModel({
+    const createdUser = await this.userRepo.create({
       ...dto,
       password: hashedPassword,
-    });
-
-    const savedUser = await createdUser.save();
-    return UserMapper.toDomain(savedUser)!;
+    } as any); // cast dto to match UserDocument
+    return UserMapper.toDomain(createdUser)!;
   }
 
   async findById(id: string): Promise<User | null> {
-    const userDoc = await this.userModel.findById(id).exec();
+    const userDoc = await this.userRepo.findById(id);
     return UserMapper.toDomain(userDoc);
   }
 
   async findOneByEmail(email: string): Promise<UserDocument | null> {
-    return this.userModel.findOne({ email }).exec();
+    return this.userRepo.findOneByEmail(email);
   }
+
+  async searchUsers(query: string): Promise<User[]> {
+    console.log('Searching users for query:', query);
+    const userDocs = await this.userRepo.searchUsers(query);
+    console.log('Found documents:', userDocs);
+    return userDocs.map(doc => {
+      const user = UserMapper.toDomain(doc);
+      console.log('Mapped user:', user);
+      return user!;
+    });
+  }
+
 }

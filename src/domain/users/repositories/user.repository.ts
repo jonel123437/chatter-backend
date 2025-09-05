@@ -21,4 +21,14 @@ export class UserRepository {
   async findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).exec();
   }
+
+  async searchUsers(query: string): Promise<UserDocument[]> {
+    return this.userModel
+      .find({
+        $or: [
+          { name: { $regex: query, $options: 'i' } },
+        ],
+      })
+      .exec();
+  }
 }

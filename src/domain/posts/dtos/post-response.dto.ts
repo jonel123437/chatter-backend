@@ -1,18 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 export class PostResponseDto {
-  @ApiProperty()
   content: string;
 
-  @ApiProperty()
-  authorId: string;
+  authorId: {
+    _id: string;
+    name: string;
+    avatarUrl?: string;
+  };
 
-  @ApiProperty()
   visibility: 'public' | 'friends' | 'only_me';
-
-  @ApiProperty()
   createdAt: Date;
-
-  @ApiProperty()
   updatedAt: Date;
 }

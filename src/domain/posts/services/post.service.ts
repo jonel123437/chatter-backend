@@ -4,32 +4,53 @@ import { Model } from 'mongoose';
 import { Post } from '../entities/post.entity';
 import { CreatePostDto } from '../dtos/create-post.dto';
 
-interface PostWithAuthorDto extends CreatePostDto {
-  authorId: string;
-}
-
 @Injectable()
 export class PostService {
   constructor(@InjectModel(Post.name) private postModel: Model<Post>) {}
 
   async createPost(dto: CreatePostDto & { authorId: string }): Promise<Post> {
     const newPost = new this.postModel(dto);
-    return newPost.save();
+    await newPost.save();
+
+    // populate authorId before returning
+    const populatedPost = await this.postModel
+      .findById(newPost._id)
+      .populate('authorId', 'name avatarUrl')
+      .exec();
+
+    if (!populatedPost) throw new Error('Post not found after creation');
+
+    return populatedPost;
   }
 
-  async getPosts() {
-    return this.postModel.find().sort({ createdAt: -1 }).exec();
+  async getPosts(): Promise<Post[]> {
+    return this.postModel
+      .find()
+      .populate('authorId', 'name avatarUrl')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
-  async getPostsForUser(userId: string, friendsIds: string[] = []): Promise<Post[]> {
-    // userId = current logged-in user
-    return this.postModel.find({
-      $or: [
-        { visibility: 'public' },                          // public posts
-        { visibility: 'friends', authorId: { $in: friendsIds } }, // friends posts
-        { authorId: userId },                               // their own posts (all visibility)
-      ],
-    }).exec();
+  async getPostsByUser(userId: string, currentUserId?: string): Promise<Post[]> {
+    const filter: any = { authorId: userId };
+
+    // If the current user is NOT the owner, only return public posts
+    if (currentUserId !== userId) {
+      filter.visibility = 'public';
+    }
+
+    return this.postModel
+      .find(filter)
+      .populate('authorId', 'name avatarUrl')
+      .sort({ createdAt: -1 })
+      .exec();
   }
 
+  async getPublicPosts(): Promise<Post[]> {
+    return this.postModel
+      .find({ visibility: 'public' })
+      .populate('authorId', 'name avatarUrl')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
 }

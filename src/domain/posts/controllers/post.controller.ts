@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Req, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { PostService } from '../services/post.service';
 import { CreatePostDto } from '../dtos/create-post.dto';
@@ -36,12 +36,31 @@ export class PostController {
   @Get('me')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Get posts visible to the current user' })
+  @ApiOperation({ summary: 'Get posts of the current user' })
   @ApiResponse({ status: 200, description: 'List of posts', type: [PostResponseDto] })
   async getVisiblePosts(@Req() req: RequestWithUser) {
     const userId = req.user.id;
-    const friendsIds: string[] = []; // TODO: fetch friends of user
-    return this.postService.getPostsForUser(userId, friendsIds);
+    return this.postService.getPostsByUser(userId, userId);
   }
 
+  // Fetch all public posts (requires login)
+  @Get('public')
+  @ApiOperation({ summary: 'Get all public posts' })
+  @ApiResponse({ status: 200, description: 'List of public posts', type: [PostResponseDto] })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async getPublicPosts() {
+    return this.postService.getPublicPosts();
+  }
+
+  // Fetch posts by any user ID
+  @Get(':id')
+  @ApiOperation({ summary: 'Get posts by a specific user ID' })
+  @ApiResponse({ status: 200, description: 'List of posts', type: [PostResponseDto] })
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async getPostsByUser(@Param('id') userId: string, @Req() req: RequestWithUser) {
+    const currentUserId = req.user.id;
+    return this.postService.getPostsByUser(userId, currentUserId);
+  }
 }
