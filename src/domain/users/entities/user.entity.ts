@@ -4,6 +4,8 @@ import { DEFAULT_PROFILE_PICTURE, DEFAULT_COVER_PICTURE } from '../../shared/con
 export class User {
   public profilePicture: string;
   public coverPicture: string;
+  public friends: string[];         // confirmed friendships
+  public friendRequests: string[];  // incoming requests
 
   constructor(
     public readonly id: string,
@@ -13,11 +15,14 @@ export class User {
     profilePicture?: string,
     coverPicture?: string,
     public readonly createdAt?: Date,
-    public readonly updatedAt?: Date
+    public readonly updatedAt?: Date,
+    friends: string[] = [],           // default empty
+    friendRequests: string[] = []     // default empty
   ) {
-    // Always fallback to defaults if values are not provided
     this.profilePicture = profilePicture || DEFAULT_PROFILE_PICTURE;
     this.coverPicture = coverPicture || DEFAULT_COVER_PICTURE;
+    this.friends = friends;
+    this.friendRequests = friendRequests;
   }
 
   async validatePassword(password: string): Promise<boolean> {

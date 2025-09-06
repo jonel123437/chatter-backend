@@ -80,3 +80,10 @@ coverage/
 # Jest cache
 jest.config.js
 jest.config.ts
+
+# Uploads (ignore images)
+uploads/cover-pictures/*
+uploads/profile-pictures/*
+# keep .gitkeep files
+!uploads/cover-pictures/.gitkeep
+!uploads/profile-pictures/.gitkeep

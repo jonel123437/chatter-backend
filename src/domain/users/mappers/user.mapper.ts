@@ -11,6 +11,8 @@ export class UserMapper {
       profilePicture?: string;
       coverPicture?: string;
       coverPhoto?: string; // legacy fallback
+      friends?: Types.ObjectId[];
+      friendRequests?: Types.ObjectId[];
     };
 
     return new UserEntity(
@@ -18,10 +20,12 @@ export class UserMapper {
       doc.name,
       doc.email,
       doc.password,
-      doc.profilePicture || DEFAULT_PROFILE_PICTURE,   // ✅ strictly profile
-      doc.coverPicture || doc.coverPhoto || DEFAULT_COVER_PICTURE, // ✅ strictly cover
+      doc.profilePicture || DEFAULT_PROFILE_PICTURE,
+      doc.coverPicture || doc.coverPhoto || DEFAULT_COVER_PICTURE,
       doc.createdAt,
       doc.updatedAt,
+      (doc.friends || []).map((f) => f.toString()),         // ✅ friends as string[]
+      (doc.friendRequests || []).map((f) => f.toString()),  // ✅ requests as string[]
     );
   }
 }

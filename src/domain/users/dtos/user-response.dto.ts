@@ -23,6 +23,20 @@ export class UserResponseDto {
   @ApiProperty({ required: false })
   updatedAt?: Date;
 
+  @ApiProperty({
+    type: [String],
+    required: false,
+    description: 'List of confirmed friend user IDs',
+  })
+  friends: string[];
+
+  @ApiProperty({
+    type: [String],
+    required: false,
+    description: 'List of pending friend request user IDs',
+  })
+  friendRequests: string[];
+
   constructor(user: User) {
     this.id = user.id;
     this.name = user.name;
@@ -31,5 +45,7 @@ export class UserResponseDto {
     this.coverPicture = user.coverPicture;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;
+    this.friends = user.friends || [];
+    this.friendRequests = user.friendRequests || []; // 👈 add this
   }
 }
