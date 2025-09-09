@@ -1,27 +1,33 @@
 import { IsEmail, IsNotEmpty, MinLength, IsOptional, IsUrl } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDto {
   @ApiProperty({ example: 'Jonel Escaran' })
   @IsNotEmpty()
   name: string;
 
-  @ApiProperty({ example: 'jonel@example.com' })
+  @ApiPropertyOptional({ example: 'jonel@example.com' })
+  @IsOptional()
   @IsEmail()
-  email: string;
+  email?: string;
 
-  @ApiProperty({ example: 'Password123!' })
+  // Password is optional to support OAuth users
+  @ApiPropertyOptional({ example: 'Password123!' })
+  @IsOptional()
   @MinLength(6)
-  password: string;
+  password?: string;
 
+  @ApiPropertyOptional({ example: 'USER' })
   @IsOptional()
-  role?: string; // optional
+  role?: string;
 
-  @IsOptional()
-  @IsUrl()
-  profilePicture?: string; // optional, must be a valid URL if provided
-
+  @ApiPropertyOptional({ example: 'https://example.com/profile.jpg' })
   @IsOptional()
   @IsUrl()
-  coverPicture?: string; // optional, must be a valid URL if provided
+  profilePicture?: string;
+
+  @ApiPropertyOptional({ example: 'https://example.com/cover.jpg' })
+  @IsOptional()
+  @IsUrl()
+  coverPicture?: string;
 }

@@ -72,8 +72,6 @@ export class PostController {
   }
 
   @Get('public')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get all public posts' })
   @ApiResponse({
     status: 200,

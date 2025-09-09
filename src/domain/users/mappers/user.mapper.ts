@@ -19,13 +19,14 @@ export class UserMapper {
       (doc._id as Types.ObjectId).toString(),
       doc.name,
       doc.email,
-      doc.password,
+      doc.password, // this is now optional in UserEntity, so it's fine if undefined
       doc.profilePicture || DEFAULT_PROFILE_PICTURE,
       doc.coverPicture || doc.coverPhoto || DEFAULT_COVER_PICTURE,
       doc.createdAt,
       doc.updatedAt,
-      (doc.friends || []).map((f) => f.toString()),         // ✅ friends as string[]
-      (doc.friendRequests || []).map((f) => f.toString()),  // ✅ requests as string[]
+      (doc.friends || []).map((f) => f.toString()),
+      (doc.friendRequests || []).map((f) => f.toString()),
     );
+
   }
 }

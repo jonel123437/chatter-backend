@@ -1,9 +1,10 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { LoginDto } from '../dtos/login.dto';
 import { UserResponseDto } from '../../users/dtos/user-response.dto';
-import { UserMapper } from '../../users/mappers/user.mapper';
+import { AuthGuard } from '@nestjs/passport';
+import type { Response } from 'express'; // type-only import
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -17,14 +18,26 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   async login(@Body() dto: LoginDto) {
     const { access_token, user } = await this.authService.login(dto);
-
-    // Map Domain User → DTO
-    const userDto = new UserResponseDto(user);
-
-    // Return both user info and JWT token
-    return {
-      access_token,
-      user: userDto,
-    };
+    return { access_token, user: new UserResponseDto(user) };
   }
+
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleAuth(@Req() req) {
+    // Initiates OAuth flow
+  }
+
+  @Get('google/redirect')
+  @UseGuards(AuthGuard('google'))
+  async googleAuthRedirect(@Req() req, @Res() res: Response) {
+    const { access_token, user } = await this.authService.validateOAuthLogin({
+      name: req.user.name,
+      email: req.user.email ?? undefined,
+      picture: req.user.picture ?? undefined,
+    });
+
+    const frontendUrl = `http://localhost:3000/auth/google?token=${access_token}`;
+    return res.redirect(frontendUrl);
+  }
+
 }

@@ -11,8 +11,9 @@ export class User {
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop({ required: true })
-  password: string;
+  // Make password optional for OAuth users
+  @Prop({ required: false })
+  password?: string;
 
   @Prop({ default: DEFAULT_PROFILE_PICTURE })
   profilePicture: string;
@@ -29,21 +30,22 @@ export class User {
   friends: Types.ObjectId[];
 }
 
-// src/domain/users/schemas/user.schema.ts
+// Type for UserDocument
 export type UserDocument = Document<unknown, {}, User> &
   User & {
-    _id: Types.ObjectId; // 👈 Explicitly type _id
+    _id: Types.ObjectId;
     validatePassword(password: string): Promise<boolean>;
     createdAt: Date;
     updatedAt: Date;
   };
 
-
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// ✅ Instance method
+// ✅ Instance method to validate password
 UserSchema.methods.validatePassword = async function (
   password: string,
 ): Promise<boolean> {
+  // If no password is set (OAuth user), always return false
+  if (!this.password) return false;
   return bcrypt.compare(password, this.password);
 };

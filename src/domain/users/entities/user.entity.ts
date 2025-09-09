@@ -11,13 +11,13 @@ export class User {
     public readonly id: string,
     public readonly name: string,
     public readonly email: string,
-    public readonly password: string,
+    public readonly password?: string,  // <-- make optional
     profilePicture?: string,
     coverPicture?: string,
     public readonly createdAt?: Date,
     public readonly updatedAt?: Date,
-    friends: string[] = [],           // default empty
-    friendRequests: string[] = []     // default empty
+    friends: string[] = [],
+    friendRequests: string[] = []
   ) {
     this.profilePicture = profilePicture || DEFAULT_PROFILE_PICTURE;
     this.coverPicture = coverPicture || DEFAULT_COVER_PICTURE;
@@ -26,6 +26,8 @@ export class User {
   }
 
   async validatePassword(password: string): Promise<boolean> {
+    if (!this.password) return false; // OAuth users have no password
     return bcrypt.compare(password, this.password);
   }
+
 }
